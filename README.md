@@ -2,7 +2,15 @@
 
 Backend REST API untuk simulasi toko dalam game Mobile Legends: Bang Bang (MLBB). Aplikasi ini menyediakan fitur pengelolaan hero, skin, player, top up diamond, pertandingan, pembelian hero, dan statistik.
 
-Proyek ini dikembangkan untuk memenuhi tugas praktikum Pemrograman Web kelompok **A14**.
+Proyek ini dikembangkan untuk memenuhi tugas praktikum Pemrograman Web **Modul 4** kelompok **A14**.
+
+## Anggota Kelompok A14
+
+| Nama | NRP |
+|---|---|
+| Senna Bagus Harimurti | 5027251106 |
+| Sultan Ahmad Maulana Bahyshidqi | 5027251070 |
+| Sulthan Daffa Al Hasyimi | 5027251091 |
 
 ## Teknologi yang Digunakan
 
@@ -180,6 +188,8 @@ Endpoint yang mendukung pagination juga menyediakan metadata seperti `currentPag
 ```text
 mlbb-shop/
 ├── data/
+│   ├── heroes.json
+│   ├── skins.json
 │   ├── heroes.csv
 │   └── skins.csv
 ├── prisma/

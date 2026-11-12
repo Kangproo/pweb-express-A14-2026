@@ -61,11 +61,7 @@ export async function getPlayerById(req: Request, res: Response) {
     include: {
       playerHeroes: {
         include: {
-          hero: {
-            include: {
-              skins: true,
-            },
-          },
+          hero: true,
         },
       },
     },
@@ -75,10 +71,20 @@ export async function getPlayerById(req: Request, res: Response) {
     throw new HttpError(404, "Player tidak ditemukan");
   }
 
+  const { playerHeroes, ...playerData } = player;
+
   res.status(200).json({
     status: true,
     message: "Berhasil mengambil data player",
-    data: player,
+    data: {
+      ...playerData,
+      heroes: playerHeroes.map((ph) => ({
+        heroId: ph.heroId,
+        name: ph.hero.name,
+        currency: ph.currency,
+        pricePaid: ph.pricePaid,
+      })),
+    },
   });
 }
 

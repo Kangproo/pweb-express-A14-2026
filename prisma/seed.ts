@@ -1,8 +1,6 @@
-
 import "../src/config/env.js";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "../src/generated/prisma/client.js";
-import { parse } from "csv-parse/sync";
 import { readFileSync } from "node:fs";
 
 const adapter = new PrismaNeon({
@@ -11,76 +9,54 @@ const adapter = new PrismaNeon({
 
 const prisma = new PrismaClient({ adapter });
 
-function readCSV(path: string) {
+function readJSON<T>(path: string): T {
   const content = readFileSync(path, "utf-8");
-
-  return parse(content, {
-    columns: true,
-    skip_empty_lines: true,
-    bom: true,
-    trim: true,
-  });
-}
-
-function nullableInt(value: string | undefined): number | null {
-  if (!value || value.trim() === "") return null;
-
-  const number = Number(value);
-
-  if (!Number.isInteger(number)) {
-    throw new Error(`Invalid integer value: ${value}`);
-  }
-
-  return number;
+  return JSON.parse(content) as T;
 }
 
 async function main() {
-  console.log("Membaca dataset CSV...");
+  console.log("Membaca dataset JSON...");
 
-  const heroes = readCSV("data/heroes.csv");
-  const skins = readCSV("data/skins.csv");
+  const heroes = readJSON<any[]>("data/heroes.json");
+  const skins = readJSON<any[]>("data/skins.json");
 
   console.log(`Ditemukan ${heroes.length} Hero`);
   console.log(`Ditemukan ${skins.length} Skin`);
 
-  // Urutkan berdasarkan ID agar ID database sesuai heroId di CSV.
-  heroes.sort((a: any, b: any) => Number(a.id) - Number(b.id));
-
   console.log("Membersihkan data lama...");
 
-  await prisma.$executeRawUnsafe(`
-    TRUNCATE TABLE
-      "PlayerHero",
-      "Player",
-      "Skin",
-      "Hero"
-    RESTART IDENTITY CASCADE
-  `);
+  // 1. Kosongkan semua tabel dengan raw query
+  await prisma.$executeRawUnsafe(
+    `TRUNCATE "PlayerHero", "Player", "Skin", "Hero" RESTART IDENTITY CASCADE`,
+  );
 
+  // 2. Masukkan semua hero dengan createMany
   console.log("Memasukkan Hero...");
 
   await prisma.hero.createMany({
-    data: heroes.map((hero: any) => ({
+    data: heroes.map((hero) => ({
       name: hero.name,
       role: hero.primaryRole,
       lane: hero.primaryLane,
       releaseYear: Number(hero.releaseYear),
-      priceBP: nullableInt(hero.priceBP),
-      priceDiamond: nullableInt(hero.priceDiamond),
+      priceBP: hero.priceBP ?? null,
+      priceDiamond: hero.priceDiamond ?? null,
     })),
   });
 
+  // 3. Masukkan semua skin dengan createMany
   console.log("Memasukkan Skin...");
 
   await prisma.skin.createMany({
-    data: skins.map((skin: any) => ({
+    data: skins.map((skin) => ({
       name: skin.name,
       rarity: skin.rarity,
-      priceDiamond: nullableInt(skin.priceDiamond),
+      priceDiamond: skin.priceDiamond ?? null,
       heroId: Number(skin.heroId),
     })),
   });
 
+  // 4. Masukkan 3 player dan data PlayerHero dari tabel
   console.log("Membuat Player...");
 
   await prisma.player.createMany({
