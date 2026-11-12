@@ -9,6 +9,7 @@ import statisticsRoutes from "./routes/statistics.routes.js";
 
 const app = express();
 
+app.set("json spaces", 2);
 app.use(express.json());
 
 // Logger untuk semua request
