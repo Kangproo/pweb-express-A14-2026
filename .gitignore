@@ -5,3 +5,4 @@ dist/
 .neon
 postman/collections/
 mlbb-shop-testcases.json
+*.zip
